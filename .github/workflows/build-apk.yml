@@ -32,32 +32,34 @@ jobs:
       - name: Install Android SDK 35
         shell: bash
         run: |
+          set -euo pipefail
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           if [ ! -x "$SDKMANAGER" ]; then
-            SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
+            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           fi
           echo "Using sdkmanager: $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Build installable debug APK
+      - name: Build installable APK
         run: gradle --no-daemon --stacktrace :app:assembleDebug
 
       - name: Prepare final APK
+        shell: bash
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/ariakish-v1.0.0.apk
-          sha256sum dist/ariakish-v1.0.0.apk > dist/SHA256SUMS.txt
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ariakish-v1.0.1.apk
+          sha256sum dist/ariakish-v1.0.1.apk > dist/SHA256SUMS.txt
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ariakish-final-apk
+          name: ariakish-final-apk-v1.0.1
           path: dist/*
           if-no-files-found: error
           retention-days: 30
