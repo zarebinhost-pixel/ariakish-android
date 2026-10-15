@@ -12,7 +12,7 @@ on:
       - '.github/workflows/build-apk.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -63,3 +63,17 @@ jobs:
           path: dist/*
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="v1.0.1"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --title "Ariakish Android v1.0.1" \
+              --notes "Installable Android APK for Ariakish. Built successfully on GitHub Actions with Android SDK 35."
+          fi
+          gh release upload "$TAG" dist/ariakish-v1.0.1.apk dist/SHA256SUMS.txt --clobber
